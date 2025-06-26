@@ -2,9 +2,9 @@ pipeline {
     agent any
     
     environment {
-        AWS_REGION = 'us-west-2'
-        ECR_REPOSITORY = 'go-web-app'
-        EKS_CLUSTER_NAME = 'my-eks-cluster'
+        AWS_REGION = 'us-east-1'
+        ECR_REPOSITORY = 'cfx-test-go'
+        EKS_CLUSTER_NAME = 'test-project-eks-cluster'
         KUBECONFIG = credentials('kubeconfig')
         AWS_CREDENTIALS = credentials('aws-credentials')
     }
@@ -80,6 +80,7 @@ pipeline {
                             
                             # Apply Kubernetes manifests
                             kubectl apply -f k8s/deployment.yaml
+                            kubectl apply -f k8s/ingress.yaml
                             
                             # Wait for deployment to complete
                             kubectl rollout status deployment/go-web-app --timeout=300s
