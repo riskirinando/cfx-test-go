@@ -1,87 +1,83 @@
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: go-web-app-ingress
+  name: multi-app-ingress  # Renamed to reflect multiple apps
   namespace: default
   annotations:
-    # AWS Load Balancer Controller annotations
     kubernetes.io/ingress.class: alb
     alb.ingress.kubernetes.io/scheme: internet-facing
     alb.ingress.kubernetes.io/target-type: ip
-    alb.ingress.kubernetes.io/listen-ports: '[{"HTTP": 80}, {"HTTPS": 443}]'
-    alb.ingress.kubernetes.io/ssl-redirect: '443'
-    
-    # Health check configuration
+    alb.ingress.kubernetes.io/listen-ports: '[{"HTTP": 80}]'
     alb.ingress.kubernetes.io/healthcheck-path: /health
     alb.ingress.kubernetes.io/healthcheck-interval-seconds: '30'
     alb.ingress.kubernetes.io/healthcheck-timeout-seconds: '5'
-    alb.ingress.kubernetes.io/healthy-threshold-count: '2'
-    alb.ingress.kubernetes.io/unhealthy-threshold-count: '3'
-    
-    # SSL/TLS Certificate (optional - replace with your certificate ARN)
-    # alb.ingress.kubernetes.io/certificate-arn: arn:aws:acm:us-west-2:123456789012:certificate/your-cert-id
-    
-    # Additional security headers
-    alb.ingress.kubernetes.io/actions.ssl-redirect: |
-      {
-        "type": "redirect",
-        "redirectConfig": {
-          "protocol": "HTTPS",
-          "port": "443",
-          "statusCode": "HTTP_301"
-        }
-      }
-    
-    # Load balancer attributes
-    alb.ingress.kubernetes.io/load-balancer-attributes: |
-      idle_timeout.timeout_seconds=60,
-      routing.http2.enabled=true,
-      access_logs.s3.enabled=true,
-      access_logs.s3.bucket=your-alb-logs-bucket,
-      access_logs.s3.prefix=go-web-app
-    
-    # Tags for the load balancer
-    alb.ingress.kubernetes.io/tags: |
-      Environment=production,
-      Application=go-web-app,
-      Team=backend
+    alb.ingress.kubernetes.io/success-codes: '200'
+    alb.ingress.kubernetes.io/tags: Environment=production,Application=multi-app
+  labels:
+    app: multi-app
 spec:
   rules:
-  - host: go-web-app.example.com  # Replace with your domain
+  # Node.js app
+  - host: nodejs.rinando.my.id
     http:
       paths:
       - path: /
         pathType: Prefix
         backend:
           service:
-            name: go-web-app-service
+            name: cfx-nodejs-service
             port:
               number: 80
-      - path: /api
-        pathType: Prefix
-        backend:
-          service:
-            name: go-web-app-service
-            port:
-              number: 80
-      - path: /health
-        pathType: Exact
-        backend:
-          service:
-            name: go-web-app-service
-            port:
-              number: 80
-  - http:  # Default rule for requests without specific host
+  # Go API app
+  - host: api.rinando.my.id
+    http:
       paths:
       - path: /
         pathType: Prefix
         backend:
           service:
-            name: go-web-app-service
+            name: go-api-service  # You'll need to create this service
             port:
               number: 80
-  # Uncomment below for HTTPS with certificate
-  # tls:
-  # - hosts:
-  #   - go-web-app.example.com
-  #   secretName: go-web-app-tls
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: nodejs-app-network-policy
+  namespace: default
+spec:
+  podSelector:
+    matchLabels:
+      app: nodejs-app
+  policyTypes:
+  - Ingress
+  - Egress
+  ingress:
+  - from:
+    - namespaceSelector: {}
+    ports:
+    - protocol: TCP
+      port: 3000
+  egress:
+  - {}
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: go-api-network-policy
+  namespace: default
+spec:
+  podSelector:
+    matchLabels:
+      app: go-api
+  policyTypes:
+  - Ingress
+  - Egress
+  ingress:
+  - from:
+    - namespaceSelector: {}
+    ports:
+    - protocol: TCP
+      port: 8080  # Assuming Go app runs on port 8080
+  egress:
+  - {}
