@@ -65,7 +65,7 @@ pipeline {
                         export KUBECONFIG=${env.KUBECONFIG}
                         
                         # Update image in deployment.yml and apply
-                        sed -i 's|IMAGE_PLACEHOLDER|${env.FULL_IMAGE_URI}|g' deployment.yml
+                        sed -i 's|IMAGE_PLACEHOLDER|${env.FULL_IMAGE_URI}|g' k8s/deployment.yml
                         kubectl apply -f k8s/deployment.yml
                         
                         # Force deployment update by setting image
