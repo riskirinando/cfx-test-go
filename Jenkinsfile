@@ -73,6 +73,8 @@ pipeline {
                         
                         if (fileExists('go.sum')) {
                             echo "✅ go.sum found"
+                        } else {
+                            echo "⚠️ go.sum not found - will be created during build"
                         }
                         
                         // Check required tools
