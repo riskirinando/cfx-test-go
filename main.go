@@ -60,7 +60,7 @@ func homeHandler(w http.ResponseWriter, r *http.Request) {
 	</head>
 	<body>
 		<div class="container">
-			<h1>Go Web Application</h1>
+			<h1>Go Web Application running on EKS Fargate</h1>
 			<p>Welcome to the containerized Go web application!</p>
 			<h3>Available Endpoints:</h3>
 			<div class="endpoint"><strong>GET /</strong> - This page</div>
