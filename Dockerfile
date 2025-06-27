@@ -1,10 +1,15 @@
 # Build stage
 FROM golang:1.21-alpine AS builder
-
 WORKDIR /app
 
-# Copy go mod and sum files
-COPY go.mod go.sum ./
+# Install git (needed for some Go modules)
+RUN apk add --no-cache git
+
+# Copy go mod file first
+COPY go.mod ./
+
+# Copy go.sum if it exists, otherwise create empty one
+COPY go.su[m] ./
 
 # Download dependencies
 RUN go mod download
@@ -18,8 +23,8 @@ RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o main .
 # Final stage
 FROM alpine:latest
 
-# Install ca-certificates for HTTPS requests
-RUN apk --no-cache add ca-certificates
+# Install ca-certificates for HTTPS requests and wget for health check
+RUN apk --no-cache add ca-certificates wget
 
 WORKDIR /root/
 
