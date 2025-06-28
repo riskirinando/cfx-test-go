@@ -1,126 +1,208 @@
-# Go Web App on EKS
+# Go Web App on AWS EKS
 
-A simple Go web application deployed to Amazon EKS with Jenkins CI/CD.
+A containerized Go web application deployed to Amazon EKS with automated CI/CD using Jenkins.
 
-## 🚀 Quick Start
+## 🌐 Live Application
+
+**Public URL**: https://api.rinando.my.id
+
+## 🏗️ Architecture
+
+```
+GitHub → Jenkins → AWS ECR → Amazon EKS → ALB → Public Internet
+```
+
+## 🚀 Features
+
+- **REST API**: JSON endpoints with health checks
+- **Containerized**: Docker-based deployment
+- **Auto-scaling**: 3 replicas with resource limits
+- **CI/CD**: Automated Jenkins pipeline
+- **Custom Domain**: ALB ingress with SSL
+- **Monitoring**: Built-in health and readiness probes
+
+## 📱 API Endpoints
+
+| Endpoint | Description | Example Response |
+|----------|-------------|------------------|
+| `/` | HTML landing page | Web interface |
+| `/api/hello` | JSON API | `{"message": "Hello from Go!", "host": "pod-123"}` |
+| `/health` | Health check | `{"status": "healthy"}` |
+| `/ready` | Readiness probe | `{"status": "ready"}` |
+
+## 🔧 Local Development
+
+**Prerequisites**: Go 1.19+
 
 ```bash
-# Run locally
+# Clone and run
+git clone <repo-url>
+cd <repo-name>
+go mod download  # Install dependencies from go.mod
 go run main.go
 
-# Build Docker image
+# Access locally
+open http://localhost:8080
+```
+
+## 🐳 Docker
+
+```bash
+# Build image
 docker build -t cfx-test-go .
 
-# Deploy to Kubernetes
-kubectl apply -f k8s/
+# Run container
+docker run -p 8080:8080 cfx-test-go
 ```
 
-## 📋 What You Need
+## ☸️ Kubernetes Deployment
 
-- Go 1.19+
-- Docker
-- AWS CLI
-- kubectl
-- Jenkins
-- EKS cluster
+**Current Setup**:
+- **Deployment**: `go-web-app` (3 replicas)
+- **Service**: `go-web-app-service` (ClusterIP)
+- **Ingress**: ALB with domain `api.rinando.my.id`
+- **Resources**: 128Mi memory, 100m CPU per pod
 
-## 🌐 Endpoints
+**Files**:
+- `k8s/deployment.yml` - Deployment + Service
+- `k8s/ingress.yml` - ALB ingress configuration
 
-**Live URL**: https://api.rinando.my.id
+## 🔄 CI/CD Pipeline (Jenkins)
 
+**Automatic deployment on git push**:
 
-## 🔧 Fix These Issues First
+1. **Build**: Docker image creation
+2. **Push**: Upload to AWS ECR
+3. **Deploy**: Rolling update to EKS cluster
 
-Your Jenkins pipeline won't work until you fix these naming mismatches:
+**Environment**:
+- **ECR Repository**: `cfx-test-go`
+- **EKS Cluster**: `test-project-eks-cluster`
+- **AWS Region**: `us-east-1`
 
-### 1. Update Jenkinsfile
-Change these lines in your Jenkinsfile:
-```bash
-# FROM:
-kubectl set image deployment/cfx-go-app cfx-go-app=...
-kubectl patch deployment cfx-go-app ...
+## ⚠️ Configuration Issues to Fix
 
-# TO:
-kubectl set image deployment/go-web-app go-web-app=...
-kubectl patch deployment go-web-app ...
+**Your Jenkins pipeline needs updates to match your Kubernetes resources:**
+
+1. **Deployment name mismatch**:
+   - Jenkinsfile uses: `cfx-go-app`
+   - Actual deployment: `go-web-app`
+
+2. **Service name mismatch**:
+   - Jenkinsfile uses: `cfx-go-service`
+   - Actual service: `go-web-app-service`
+
+3. **Ingress service reference**:
+   - Current: `go-api-service` (doesn't exist)
+   - Should be: `go-web-app-service`
+
+4. **Image placeholder**:
+   - Replace hardcoded image in deployment.yml with `IMAGE_PLACEHOLDER`
+
+## 🔧 Quick Fixes
+
+**Fix 1: Update Jenkinsfile deployment commands**:
+```groovy
+// Change from:
+kubectl set image deployment/cfx-go-app cfx-go-app=${env.FULL_IMAGE_URI}
+
+// To:
+kubectl set image deployment/go-web-app go-web-app=${env.FULL_IMAGE_URI}
 ```
 
-### 2. Fix ingress.yml
+**Fix 2: Update ingress.yml service name**:
 ```yaml
-# Change service name from:
-name: go-api-service
-
-# To:
-name: go-web-app-service
+backend:
+  service:
+    name: go-web-app-service  # Fix this
+    port:
+      number: 80
 ```
 
-### 3. Fix deployment.yml
+**Fix 3: Update deployment.yml image**:
 ```yaml
-# Change hardcoded image:
+# Change from:
 image: 112113402575.dkr.ecr.us-east-1.amazonaws.com/cfx-test-go:latest
 
 # To:
 image: IMAGE_PLACEHOLDER
 ```
 
-## 🐳 Docker
+## 🛠️ Manual Commands
 
-The app runs on port 8080 and includes health checks.
-
-## ☸️ Kubernetes
-
-- **Replicas**: 3
-- **Resources**: 128Mi memory, 100m CPU
-- **Service**: ClusterIP on port 80
-- **Ingress**: ALB with custom domain
-
-## 🔄 CI/CD Pipeline
-
-Jenkins automatically:
-1. Builds Docker image
-2. Pushes to ECR
-3. Deploys to EKS
-4. Updates with rolling deployment
-
-## 🐛 Debug Commands
-
+**Deploy manually**:
 ```bash
-# Check pods
+# Build and push
+docker build -t cfx-test-go .
+docker tag cfx-test-go 112113402575.dkr.ecr.us-east-1.amazonaws.com/cfx-test-go:latest
+docker push 112113402575.dkr.ecr.us-east-1.amazonaws.com/cfx-test-go:latest
+
+# Update deployment
+kubectl set image deployment/go-web-app go-web-app=112113402575.dkr.ecr.us-east-1.amazonaws.com/cfx-test-go:latest
+```
+
+**Check status**:
+```bash
+# View pods
 kubectl get pods -l app=go-web-app
 
-# View logs
+# Check logs
 kubectl logs -l app=go-web-app
 
-# Check service
-kubectl get svc go-web-app-service
-
-# Port forward to test
+# Test locally
 kubectl port-forward svc/go-web-app-service 8080:80
 ```
 
-## 📁 Project Structure
+## 📊 Monitoring
+
+**Health checks configured**:
+- **Liveness**: `/health` every 10s
+- **Readiness**: `/ready` every 5s
+- **ALB Health**: `/health` every 30s
+
+**Resource limits**:
+- **Memory**: 64Mi request, 128Mi limit
+- **CPU**: 50m request, 100m limit
+
+## 🚨 Troubleshooting
+
+**Common issues**:
+
+```bash
+# Pod not starting
+kubectl describe pod <pod-name>
+
+# Service not accessible
+kubectl get svc go-web-app-service
+kubectl describe ingress multi-app-ingress
+
+# Check ALB status
+kubectl get ingress -o wide
+```
+
+**Pipeline fails**:
+- Check AWS credentials in Jenkins
+- Verify ECR repository exists
+- Ensure EKS cluster is accessible
+
+## 📝 Project Structure
 
 ```
-├── main.go             
-├── go.mod
-├── go.sum
-├── Dockerfile           
-├── Jenkinsfile         
-└── k8s/
-    ├── deployment.yml   
-    └── ingress.yml      
+├── main.go              # Go application
+├── go.mod               # Go module dependencies
+├── go.sum               # Dependency checksums
+├── Dockerfile           # Container configuration
+├── Jenkinsfile          # CI/CD pipeline
+├── k8s/
+│   ├── deployment.yml   # Kubernetes deployment + service
+│   └── ingress.yml      # ALB ingress configuration
+└── README.md           # This file
 ```
 
-## 🔑 Key Features
+## 🤝 Contributing
 
-- RESTful API with JSON responses
-- Built-in health checks
-- Docker containerized
-- Kubernetes ready
-- Auto-scaling with 3 replicas
-- Custom domain routing
-- Automated CI/CD
-
----
-
-**Next Steps**: Fix the naming issues above, then push your code to trigger the Jenkins pipeline!
+1. Fork repository
+2. Make changes
+3. Test locally: `go run main.go`
+4. Push to trigger Jenkins pipeline
+5. Check deployment at https://api.rinando.my.id
