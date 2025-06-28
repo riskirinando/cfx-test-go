@@ -1,22 +1,22 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: go-web-app
+  name: cfx-go-app
   namespace: default
   labels:
-    app: go-web-app
+    app: cfx-go-app
 spec:
-  replicas: 1
+  replicas: 3
   selector:
     matchLabels:
-      app: go-web-app
+      app: cfx-go-app
   template:
     metadata:
       labels:
-        app: go-web-app
+        app: cfx-go-app
     spec:
       containers:
-      - name: go-web-app
+      - name: cfx-go-app
         image: 112113402575.dkr.ecr.us-east-1.amazonaws.com/cfx-test-go:latest
         ports:
         - containerPort: 8080
@@ -70,11 +70,11 @@ metadata:
   name: cfx-go-service
   namespace: default
   labels:
-    app: go-web-app
+    app: cfx-go-app
 spec:
   type: ClusterIP
   selector:
-    app: go-web-app
+    app: cfx-go-app
   ports:
   - name: http
     port: 80
