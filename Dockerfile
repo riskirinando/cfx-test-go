@@ -31,6 +31,9 @@ WORKDIR /root/
 # Copy the binary from builder stage
 COPY --from=builder /app/main .
 
+# ✅ Ensure the binary is executable
+RUN chmod +x ./main
+
 # Create static directory for potential assets
 RUN mkdir -p static
 
