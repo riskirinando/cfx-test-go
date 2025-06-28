@@ -26,10 +26,8 @@ kubectl apply -f k8s/
 
 ## 🌐 Endpoints
 
-- **Live URL**: https://api.rinando.my.id
-- **Health Check**: `/health`
-- **API**: `/api/hello`
-- **Home**: `/`
+**Live URL**: https://api.rinando.my.id
+
 
 ## 🔧 Fix These Issues First
 
