@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
       - name: cfx-go-app
-        image: 112113402575.dkr.ecr.us-east-1.amazonaws.com/cfx-test-go:latest
+        image: <account-id>.dkr.ecr.us-east-1.amazonaws.com/cfx-test-go:latest
         ports:
         - containerPort: 8080
           name: http
