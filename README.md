@@ -5,8 +5,6 @@ A containerized Go web application deployed to Amazon EKS with automated CI/CD u
 ## 🌐 Live Application
 
 **Public URL**: http://api.rinando.my.id
-![image](https://github.com/user-attachments/assets/a68e29fc-cb83-4b91-9799-6523e5f51807)
-
 
 ## 🏗️ Architecture
 
@@ -160,3 +158,5 @@ kubectl get ingress -o wide
 3. Test locally: `go run main.go`
 4. Push to trigger Jenkins pipeline
 5. Check deployment at http://api.rinando.my.id
+   ![image](https://github.com/user-attachments/assets/aad50643-4674-4124-b84e-c48943160773)
+
