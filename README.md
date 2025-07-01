@@ -157,4 +157,4 @@ kubectl get ingress -o wide
 2. Make changes
 3. Test locally: `go run main.go`
 4. Push to trigger Jenkins pipeline
-5. Check deployment at https://api.rinando.my.id
+5. Check deployment at http://api.rinando.my.id
