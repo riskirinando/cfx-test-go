@@ -4,7 +4,7 @@ A containerized Go web application deployed to Amazon EKS with automated CI/CD u
 
 ## 🌐 Live Application
 
-**Public URL**: https://api.rinando.my.id
+**Public URL**: http://api.rinando.my.id
 
 ## 🏗️ Architecture
 
